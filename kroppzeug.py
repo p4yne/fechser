@@ -208,7 +208,7 @@ class KroppzeugShell(cmd.Cmd):
     #--------------commands---------------#
     def do_whereami(self, arg):
         'Toggle if current hostname sould be displayed instead of the '\
-        'Kroppzeug logo: whereami'
+        'Kroppzeug title\ntype it again to switch back: whereami'
         global whereami
         if whereami is True:
             whereami = False
