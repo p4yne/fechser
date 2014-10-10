@@ -22,6 +22,7 @@ import os
 import time
 import sys
 from subprocess import call
+from socket import gethostname
 
 # global variables
 hosts           = []
@@ -40,7 +41,6 @@ TERM_RESET      = '\033[0m'
 
 # catch SIGINT (e.g. ctrl+c)
 import signal
-import sys
 def signal_handler(signal, frame):
     print()
     print(TERM_RESET + 'Life tasted so good, dude!')
@@ -79,7 +79,7 @@ def parse_hosts(filename):
             about = value
         elif option.lower() == '#kroppzeug_update' and len(value) > 0:
             update = value
-        elif option.lower() == '#kroppzeug_autocmd':
+        elif option.lower() == '#kroppzeug_autocmd' and value.lower() != 'false':
             autocmd = value
         elif option.lower() == '#kroppzeug_managed' and value.lower() == 'true':
             hosts.append([shortcut, about, update, autocmd])
@@ -89,9 +89,9 @@ def parse_hosts(filename):
 def print_header():
     os.system('clear')
     print(TERM_BOLD + TERM_RED, end='')
-    if whereami == True:
+    if whereami is True:
         print()
-        print(os.getenv('HOSTNAME').center(TERM_SIZEX))
+        print(gethostname().center(TERM_SIZEX))
         print()
     else:
         print('┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐'.center(TERM_SIZEX))
@@ -192,7 +192,7 @@ while True:
         os.system('clear')
         quit()
     elif n == 'whereami':
-        if whereami == True:
+        if whereami is True:
             whereami = False
         else:
             whereami = True

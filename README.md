@@ -23,7 +23,7 @@ Configuration
 Just annotate you SSH config file with comments starting with '#kroppzeug_'.
 
 
-* ``#kroppzeug_autocmd`` Commands to execute after the connection has been made.
+* ``#kroppzeug_autocmd`` Commands to execute after the connection has been made. If value is ``false`` no command is executed.
 * ``#kroppzeug_description`` A description of the server. Optional.
 * ``#kroppzeug_update`` Commands to execute when using the update function. Optional.
 * ``#kroppzeug_managed`` Set to 'true' to allow kroppzeug to list this server.
@@ -38,6 +38,19 @@ Host cloud
     #kroppzeug_autocmd      tmux attach || tmux
     #kroppzeug_description  OwnCloud Server
     #kroppzeug_update       apt-get update; apt-get upgrade
+    #kroppzeug_managed      true
+````
+
+Additional Example snippet:
+
+````
+Host server
+    Hostname                webserver.nonattached.net
+    User                    user1
+    Port                    2222
+    #kroppzeug_autocmd      false
+    #kroppzeug_description  OwnCloud Server
+    #kroppzeug_update       sudo apt-get update; sudo apt-get upgrade
     #kroppzeug_managed      true
 ````
 
