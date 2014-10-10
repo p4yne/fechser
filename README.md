@@ -86,19 +86,19 @@ Screenshot
                           ├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬                           
                           ┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘                           
 ────────────────────────────────────────────────────────────────────────────────
-             mail Mailserver                    www Webserver
-           nethop Shell                         gws Gateway E.
-          storage Storage E.                sealand Backup Server
+             mail Mailserver                        www Webserver
+           nethop Shell                             gws Gateway E.
+          storage Storage E.                    sealand Backup Server
              cell Testbed                        glados MCP                 
             cloud Owncloud                       valkyr Mailserver          
            oracle DNS Server                    wheatly Webserver           
           turrent Honeypot                          bit Firewall            
          morpheus Puppet Master                     neo VPN Server          
-           nan-gw Gateway Frankfurt         nan-vpn VPN Terminator IPMI
-           puppet Puppet Master                  ns Nameserver (master)
-             dns1 RDNSS 1                      dns2 RDNSS 2
-          irc IRC Server                  cloud OwnCloud Server
-              git GIT Repository                jmp VPN server
+           nan-gw Gateway Frankfurt             nan-vpn VPN Terminator IPMI
+           puppet Puppet Master                      ns Nameserver (master)
+             dns1 RDNSS 1                          dns2 RDNSS 2
+          irc IRC Server                          cloud OwnCloud Server
+              git GIT Repository                    jmp VPN server
          workshop IPv6-Workshop
 
 ────────────────────────────────────────────────────────────────────────────────
