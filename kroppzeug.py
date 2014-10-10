@@ -27,7 +27,6 @@ from socket import gethostname
 
 # global variables
 hosts           = []
-error_message   = False
 whereami        = False
 ssh_config_file = os.getenv("HOME") + '/.ssh/config'
 
@@ -138,21 +137,20 @@ def print_hosts():
             print(out)
 
 
-def print_cmd():
-    global error_message
+def print_rest_screen():
     # position
-    posx = str(TERM_SIZEY - 3)
+    posx = str(TERM_SIZEY - 2)
     print('\033[' + posx + ';0f')
     # horizontal line
     print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
-    # print error message if set
-    if error_message is not False:
-        print(TERM_BOLD + TERM_RED + error_message)
-        error_message = False
-    else:
-        print()
-    # command prompt
-    print(TERM_BOLD + TERM_YELLOW + '$ ' + TERM_RESET, end='')
+
+
+def build_screen():
+    # build screen
+    TERM_SIZEY, TERM_SIZEX = get_termsize()
+    print_header()
+    print_hosts()
+    print_rest_screen()
 
 
 def connect_host(i):
@@ -189,48 +187,77 @@ def shortcut_to_id(shortcut):
             return i
     return False
 
+
+def startswith(text):
+    return [host[0] for host in hosts if host[0].startswith(text)]
+
+
 parse_hosts(ssh_config_file)
 
-while True:
-    # build screen
-    TERM_SIZEY, TERM_SIZEX = get_termsize()
-    print_header()
-    print_hosts()
-    print_cmd()
 
-    # input
-    try:
-        n = input('')
-    except EOFError:
-        n = 'exit'
+import cmd
 
-    # execute
-    ns = n.split(None, 1)
-    if n == 'q' or n == 'e' or n == 'exit':
-        os.system('clear')
-        quit()
-    elif n == 'whereami':
+
+class KroppzeugShell(cmd.Cmd):
+    prompt = TERM_BOLD + TERM_YELLOW + '(kroppzeug)$ ' + TERM_RESET
+    build_screen()
+
+    def __init__(self):
+        super(KroppzeugShell, self).__init__()
+
+    #--------------commands---------------#
+    def do_whereami(self, arg):
+        'Toggle if current hostname sould be displayed instead of the Kroppzeug logo: whereami'
+        global whereami
         if whereami is True:
             whereami = False
         else:
             whereami = True
-    elif len(ns) > 1 and ns[0] == 'update' and ns[1] == 'all':
-        for i in range(len(hosts)):
-            update_host(i)
-            print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
-    elif len(ns) > 1 and ns[0] == 'update':
-        i = shortcut_to_id(ns[1])
-        if i is not False:
-            update_host(i)
-            time.sleep(3)
-        else:
-            error_message = 'unknown shortcut'
-    else:
-        i = shortcut_to_id(n)
+
+    def do_connect(self, arg):
+        'Connect to specified host: connect valkyr'
+        i = shortcut_to_id(arg)
         if i is not False:
             connect_host(i)
             time.sleep(1)
+            build_screen()
         else:
-            error_message = 'unknown shortcut'
+            print(TERM_BOLD + TERM_RED + 'unknown/undefined shortcut' + TERM_RESET)
+
+    def do_update(self, arg):
+        'Update specified host: update painkiller \n' \
+        'Update all hosts:      update all '
+        if arg == 'all':
+            for i in range(len(hosts)):
+                update_host(i)
+                print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
+                build_screen()
+        else:
+            i = shortcut_to_id(arg)
+            if i is not False:
+                update_host(i)
+                print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
+                time.sleep(3)
+                build_screen()
+            else:
+                print(TERM_BOLD + TERM_RED + 'unknown/undefined shortcut' + TERM_RESET)
+
+    def do_list(self, arg):
+        'List all available shortcuts for managed hosts: list'
+        build_screen()
+
+    def do_exit(self, arg):
+        'Exit/quit the Kroppzeug shell: exit'
+        print('Thank you for using Kroppzeug to manage you digital offspring!')
+        return True
+
+    #--------------tab completion---------------#
+    def complete_connect(self, text, line, begidx, endidx):
+        return startswith(text)
+
+    def complete_update(self, text, line, begidx, endidx):
+        return startswith(text)
 
 
+if __name__ == '__main__':
+    KroppzeugShell().cmdloop()

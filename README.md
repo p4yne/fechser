@@ -71,33 +71,39 @@ Host fun
 Commands
 --------
 
-To connect to a server just type the coresponding ``[server name]``.
+To connect to a server just type ``connect [server name]``.
 To update a server use ``update [server name]`` or ``update all`` to update
 all servers. If you are unsure from which host you are connecting, e.g.
 because you own too many computers, type ``whereami`` to toggle the hostname
-in the title area.
+in the title area. The prompt is like a special purpose shell that supports
+**TAB** completion and by typing ``help <command>`` a short description and usage examples are given.
 
 
 Screenshot
 ----------
 ````
-                     ┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐
-                     ├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬
-                     ┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘
-─────────────────────────────────────────────────────────────────────
-     nan-gw Gateway Frankfurt         nan-vpn VPN Terminator IPMI
-     puppet Puppet Master                  ns Nameserver (master)
-       dns1 RDNSS 1                      dns2 RDNSS 2
-       mail Mailserver                    www Webserver
-     nethop Shell                         gws Gateway E.
-    storage Storage E.                sealand Backup Server
-        irc IRC Server                  cloud OwnCloud Server
-        git GIT Repository                jmp VPN server
-   workshop IPv6-Workshop
+                          ┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐                           
+                          ├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬                           
+                          ┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘                           
+────────────────────────────────────────────────────────────────────────────────
+             mail Mailserver                    www Webserver
+           nethop Shell                         gws Gateway E.
+          storage Storage E.                sealand Backup Server
+             cell Testbed                        glados MCP                 
+            cloud Owncloud                       valkyr Mailserver          
+           oracle DNS Server                    wheatly Webserver           
+          turrent Honeypot                          bit Firewall            
+         morpheus Puppet Master                     neo VPN Server          
+           nan-gw Gateway Frankfurt         nan-vpn VPN Terminator IPMI
+           puppet Puppet Master                  ns Nameserver (master)
+             dns1 RDNSS 1                      dns2 RDNSS 2
+          irc IRC Server                  cloud OwnCloud Server
+              git GIT Repository                jmp VPN server
+         workshop IPv6-Workshop
 
-─────────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────────────
+(kroppzeug)$ 
 
-$
 ````
 
 License
