@@ -207,7 +207,8 @@ class KroppzeugShell(cmd.Cmd):
 
     #--------------commands---------------#
     def do_whereami(self, arg):
-        'Toggle if current hostname sould be displayed instead of the Kroppzeug logo: whereami'
+        'Toggle if current hostname sould be displayed instead of the '\
+        'Kroppzeug logo: whereami'
         global whereami
         if whereami is True:
             whereami = False
@@ -222,7 +223,8 @@ class KroppzeugShell(cmd.Cmd):
             time.sleep(1)
             build_screen()
         else:
-            print(TERM_BOLD + TERM_RED + 'unknown/undefined shortcut' + TERM_RESET)
+            print(TERM_BOLD + TERM_RED + 'unknown/'\
+            'undefined shortcut' + TERM_RESET)
 
     def do_update(self, arg):
         'Update specified host: update painkiller \n' \
@@ -240,7 +242,8 @@ class KroppzeugShell(cmd.Cmd):
                 time.sleep(3)
                 build_screen()
             else:
-                print(TERM_BOLD + TERM_RED + 'unknown/undefined shortcut' + TERM_RESET)
+                print(TERM_BOLD + TERM_RED + 'unknown/'\
+                'undefined shortcut' + TERM_RESET)
 
     def do_list(self, arg):
         'List all available shortcuts for managed hosts: list'
