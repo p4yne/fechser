@@ -26,8 +26,10 @@ Just annotate you SSH config file with comments starting with '#kroppzeug_'.
 * ``#kroppzeug_autocmd`` Commands to execute after the connection has been made. If value is ``false`` no command is executed.
 * ``#kroppzeug_description`` A description of the server. Optional.
 * ``#kroppzeug_update`` Commands to execute when using the update function. Optional.
+* ``#kroppzeug_ssh`` Default is to use ssh, but setting this to e.g. mosh will use mosh to connect to the server. Optional.
 * ``#kroppzeug_managed`` Set to 'true' to allow kroppzeug to list this server.
 
+The default behaviour is to use ``ssh`` and ``ssh -v`` when updating. But ``#kroppzeug_ssh`` allows changing of ssh command for a normal connection, like changing it to ``mosh`` or to ``ssh -vvv``.
 ``#kroppzeug_managed`` must be true if a host entry should be used and it also must be the last comment for a host entry, only this ensures correct parsing of the config file and host entries.
 
 ````
@@ -41,7 +43,7 @@ Host cloud
     #kroppzeug_managed      true
 ````
 
-Additional Example snippet:
+Additional Example snippets:
 
 ````
 Host server
@@ -51,6 +53,18 @@ Host server
     #kroppzeug_autocmd      false
     #kroppzeug_description  OwnCloud Server
     #kroppzeug_update       sudo apt-get update; sudo apt-get upgrade
+    #kroppzeug_managed      true
+````
+
+````
+Host fun
+    Hostname                lucky.nonattached.net
+    User                    user1
+    Port                    2222
+    #kroppzeug_autocmd      false
+    #kroppzeug_description  Happy Cats
+    #kroppzeug_update       yaourt -Syua
+    #kroppzeug_ssh          mosh
     #kroppzeug_managed      true
 ````
 

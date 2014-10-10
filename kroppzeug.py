@@ -21,6 +21,7 @@ import string
 import os
 import time
 import sys
+import signal
 from subprocess import call
 from socket import gethostname
 
@@ -39,13 +40,14 @@ TERM_MAGENTA    = '\033[95m'
 TERM_BOLD       = '\033[1m'
 TERM_RESET      = '\033[0m'
 
+
 # catch SIGINT (e.g. ctrl+c)
-import signal
 def signal_handler(signal, frame):
     print()
     print(TERM_RESET + 'Life tasted so good, dude!')
     sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
+
 
 # get terminal size
 def get_termsize():
@@ -53,7 +55,20 @@ def get_termsize():
     y = int(y)
     x = int(x)
     return y, x
+# terminal dimensions and sizes
 TERM_SIZEY, TERM_SIZEX = get_termsize()
+
+# fine grained layouting
+# bss,shortcut_width,bs,about_width,aas,ms
+bss = 1     # before_shortcut_space
+sw  = 16    # shortcut_width
+bs  = 1     # between_space
+aas = 1     # after_about_space
+ms  = 0     # middle_space
+nc  = 2     # number of columns
+shortcut_width = sw
+about_width = (TERM_SIZEX - ((((bss + sw + bs + aas) * nc) + ms))) // nc
+
 
 # read ssh hosts from config file
 def parse_hosts(filename):
@@ -74,7 +89,10 @@ def parse_hosts(filename):
             about = 'no description'
             update = False
             autocmd = False
+            shell = 'ssh'
             i += 1
+        elif option.lower() == '#kroppzeug_ssh' and value.lower() != 'ssh':
+            shell = value
         elif option.lower() == '#kroppzeug_description':
             about = value
         elif option.lower() == '#kroppzeug_update' and len(value) > 0:
@@ -82,8 +100,9 @@ def parse_hosts(filename):
         elif option.lower() == '#kroppzeug_autocmd' and value.lower() != 'false':
             autocmd = value
         elif option.lower() == '#kroppzeug_managed' and value.lower() == 'true':
-            hosts.append([shortcut, about, update, autocmd])
+            hosts.append([shortcut, about, update, autocmd, shell])
     inputfile.close()
+
 
 # print header
 def print_header():
@@ -99,31 +118,30 @@ def print_header():
         print('┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘'.center(TERM_SIZEX))
     print(TERM_GREEN + '─' * TERM_SIZEX)
 
+
 # print a list of available hosts
 def print_hosts():
-    shortcut_width = 11
-    about_width = (TERM_SIZEX - 23) // 2
     i = -1
     for host in hosts:
         i += 1
         host_shortcut = host[0][:shortcut_width]
         if host[1] is not False:
-            host_about = ' ' + host[1][:about_width]
+            host_about = ' ' + host[1][:about_width] + ' '
         else:
             host_about = ' '
-        out = ''
+        out = ' '
         out = out + TERM_BOLD + TERM_BLUE + host_shortcut.rjust(shortcut_width)
         out = out + TERM_RESET + host_about.ljust(about_width)
-        if i%2 == 0:
+        if i % 2 == 0:
             print(out, end='')
         else:
             print(out)
 
+
 def print_cmd():
     global error_message
-
     # position
-    posx = str(TERM_SIZEY -3)
+    posx = str(TERM_SIZEY - 3)
     print('\033[' + posx + ';0f')
     # horizontal line
     print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
@@ -136,17 +154,19 @@ def print_cmd():
     # command prompt
     print(TERM_BOLD + TERM_YELLOW + '$ ' + TERM_RESET, end='')
 
+
 def connect_host(i):
     auto_command = hosts[i][3]
     shortcut = hosts[i][0]
     # craft shell command
-    shell_command = 'ssh -v ' + shortcut
+    shell_command = hosts[i][4] + ' ' + shortcut
     if auto_command is not False:
         shell_command += ' -t "' + auto_command + '"'
     # go!
     os.system('clear')
     print(TERM_YELLOW + shell_command + TERM_RESET)
     call(shell_command, shell=True)
+
 
 def update_host(i):
     update_command = hosts[i][2]
@@ -168,8 +188,6 @@ def shortcut_to_id(shortcut):
         if host[0] == shortcut:
             return i
     return False
-
-
 
 parse_hosts(ssh_config_file)
 
