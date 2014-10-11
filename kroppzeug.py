@@ -54,19 +54,6 @@ def get_termsize():
     y = int(y)
     x = int(x)
     return y, x
-# terminal dimensions and sizes
-TERM_SIZEY, TERM_SIZEX = get_termsize()
-
-# fine grained layouting
-# bss,shortcut_width,bs,about_width,aas,ms
-bss = 1     # before_shortcut_space
-sw  = 16    # shortcut_width
-bs  = 1     # between_space
-aas = 1     # after_about_space
-ms  = 0     # middle_space
-nc  = 2     # number of columns
-shortcut_width = sw
-about_width = (TERM_SIZEX - ((((bss + sw + bs + aas) * nc) + ms))) // nc
 
 
 # read ssh hosts from config file
@@ -104,22 +91,22 @@ def parse_hosts(filename):
 
 
 # print header
-def print_header():
+def print_header(terminal_size_x):
     os.system('clear')
     print(TERM_BOLD + TERM_RED, end='')
     if whereami is True:
         print()
-        print(gethostname().center(TERM_SIZEX))
+        print(gethostname().center(terminal_size_x))
         print()
     else:
-        print('┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐'.center(TERM_SIZEX))
-        print('├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬'.center(TERM_SIZEX))
-        print('┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘'.center(TERM_SIZEX))
-    print(TERM_GREEN + '─' * TERM_SIZEX)
+        print('┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐'.center(terminal_size_x))
+        print('├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬'.center(terminal_size_x))
+        print('┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘'.center(terminal_size_x))
+    print(TERM_GREEN + '─' * terminal_size_x)
 
 
 # print a list of available hosts
-def print_hosts():
+def print_hosts(shortcut_width, about_width):
     i = -1
     for host in hosts:
         i += 1
@@ -137,20 +124,32 @@ def print_hosts():
             print(out)
 
 
-def print_rest_screen():
+def print_rest_screen(terminal_size_y, terminal_size_x):
     # position
-    posx = str(TERM_SIZEY - 2)
+    posx = str(terminal_size_y - 2)
     print('\033[' + posx + ';0f')
     # horizontal line
-    print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
+    print(TERM_BOLD + TERM_GREEN + '─' * terminal_size_x + TERM_RESET)
 
 
 def build_screen():
     # build screen
-    TERM_SIZEY, TERM_SIZEX = get_termsize()
-    print_header()
-    print_hosts()
-    print_rest_screen()
+    # terminal dimensions and sizes
+    term_size_y, term_size_x = get_termsize()
+    # fine grained layouting
+    # bss,shortcut_width,bs,about_width,aas,ms
+    bss = 1     # before_shortcut_space
+    sw  = 16    # shortcut_width
+    bs  = 1     # between_space
+    aas = 1     # after_about_space
+    ms  = 0     # middle_space
+    nc  = 2     # number of columns
+    shortcut_width = sw
+    about_width = (term_size_x - ((((bss + sw + bs + aas) * nc) + ms))) // nc
+    # print the actual screen
+    print_header(term_size_x)
+    print_hosts(shortcut_width, about_width)
+    print_rest_screen(term_size_y, term_size_x)
 
 
 def connect_host(i):
