@@ -188,7 +188,7 @@ def shortcut_to_id(shortcut):
     return False
 
 
-def startswith(text):
+def hosts_startswith(text):
     return [host[0] for host in hosts if host[0].startswith(text)]
 
 
@@ -256,11 +256,13 @@ class KroppzeugShell(cmd.Cmd):
 
     #--------------tab completion---------------#
     def complete_connect(self, text, line, begidx, endidx):
-        return startswith(text)
+        return hosts_startswith(text)
 
     def complete_update(self, text, line, begidx, endidx):
-        return startswith(text)
-
+        result = hosts_startswith(text)
+        if text == '' or 'all'.startswith(text):
+            result.append('all')
+        return result
 
 if __name__ == '__main__':
     KroppzeugShell().cmdloop()
