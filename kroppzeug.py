@@ -29,6 +29,7 @@ from socket import gethostname
 hosts           = []
 whereami        = False
 ssh_config_file = os.getenv("HOME") + '/.ssh/config'
+error_message   = ''
 
 # colors, control sequences
 TERM_RED        = '\033[91m'
@@ -124,12 +125,28 @@ def print_hosts(shortcut_width, about_width):
             print(out)
 
 
-def print_rest_screen(terminal_size_y, terminal_size_x):
+def print_vertical_space(term_size_y, lines_to_spare=2):
     # position
-    posx = str(terminal_size_y - 2)
+    posx = str(term_size_y - lines_to_spare)
     print('\033[' + posx + ';0f')
+
+
+def print_horizontal_line(term_size_x):
     # horizontal line
-    print(TERM_BOLD + TERM_GREEN + '─' * terminal_size_x + TERM_RESET)
+    print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
+
+
+def print_rest_screen(term_size_y, term_size_x):
+    global error_message
+    if error_message == '':
+        print_vertical_space(term_size_y)
+        print_horizontal_line(term_size_x)
+    else:
+        print_vertical_space(term_size_y, 3)
+        print_horizontal_line(term_size_x)
+        print(TERM_BOLD + TERM_RED + error_message + TERM_RESET)
+        # reset error message
+        error_message = ''
 
 
 def build_screen():
@@ -163,7 +180,6 @@ def connect_host(i):
     os.system('clear')
     print(TERM_YELLOW + shell_command + TERM_RESET)
     call(shell_command, shell=True)
-
 
 def update_host(i):
     update_command = hosts[i][2]
@@ -199,7 +215,6 @@ import cmd
 
 class KroppzeugShell(cmd.Cmd):
     prompt = TERM_BOLD + TERM_YELLOW + '(kroppzeug)$ ' + TERM_RESET
-    build_screen()
 
     def __init__(self):
         super(KroppzeugShell, self).__init__()
@@ -216,33 +231,35 @@ class KroppzeugShell(cmd.Cmd):
 
     def do_connect(self, arg):
         'Connect to specified host: connect valkyr'
+        global error_message
         i = shortcut_to_id(arg)
         if i is not False:
             connect_host(i)
             time.sleep(1)
-            build_screen()
         else:
-            print(TERM_BOLD + TERM_RED + 'unknown/'\
-            'undefined shortcut' + TERM_RESET)
+            #print(TERM_BOLD + TERM_RED + 'unknown/'\
+            #'undefined shortcut' + TERM_RESET)
+            error_message = 'unknown/undefined shortcut'
 
     def do_update(self, arg):
         'Update specified host: update painkiller \n' \
         'Update all hosts:      update all '
+        global error_message
+        term_size_y, term_size_x = get_termsize()
         if arg == 'all':
             for i in range(len(hosts)):
                 update_host(i)
-                print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
-                build_screen()
+                print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
         else:
             i = shortcut_to_id(arg)
             if i is not False:
                 update_host(i)
-                print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
+                print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
                 time.sleep(3)
-                build_screen()
             else:
-                print(TERM_BOLD + TERM_RED + 'unknown/'\
-                'undefined shortcut' + TERM_RESET)
+                #print(TERM_BOLD + TERM_RED + 'unknown/'\
+                #'undefined shortcut' + TERM_RESET)
+                error_message = 'unknown/undefined shortcut'
 
     def do_list(self, arg):
         'List all available shortcuts for managed hosts: list'
@@ -250,7 +267,8 @@ class KroppzeugShell(cmd.Cmd):
 
     def do_exit(self, arg):
         'Exit/quit the Kroppzeug shell: exit'
-        print('Thank you for using Kroppzeug to manage you digital offspring!')
+        global error_message
+        error_message = 'Thank you for using Kroppzeug to manage your digital offspring!'
         return True
 
     #--------------tab completion---------------#
@@ -266,13 +284,24 @@ class KroppzeugShell(cmd.Cmd):
     #------------aux cmd functions-------------#
     # if empty line is submitted do nothing just rebuild screen
     def emptyline(self):
-        build_screen()
+        global error_message
+        error_message = 'empty line/command, nothing to do!'
         pass
 
     # if no matching method for command is found do nothing just rebuild screen
     def default(self, arg):
-        build_screen()
+        global error_message
+        error_message = 'unknown/undefined command'
         pass
+
+    # initial draw of screen befor command loop
+    def preloop(self):
+        build_screen()
+
+    def postcmd(self, stop, line):
+        if not line.startswith('help'):
+            build_screen()
+        return stop
 
 if __name__ == '__main__':
     KroppzeugShell().cmdloop()
