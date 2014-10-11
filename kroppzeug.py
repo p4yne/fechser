@@ -263,9 +263,5 @@ class KroppzeugShell(cmd.Cmd):
             result.append('all')
         return result
 
-    def emptyline(self):
-        build_screen()
-        pass
-
 if __name__ == '__main__':
     KroppzeugShell().cmdloop()
