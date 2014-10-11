@@ -263,5 +263,16 @@ class KroppzeugShell(cmd.Cmd):
             result.append('all')
         return result
 
+    #------------aux cmd functions-------------#
+    # if empty line is submitted do nothing just rebuild screen
+    def emptyline(self):
+        build_screen()
+        pass
+
+    # if no matching method for command is found do nothing just rebuild screen
+    def default(self, arg):
+        build_screen()
+        pass
+
 if __name__ == '__main__':
     KroppzeugShell().cmdloop()
