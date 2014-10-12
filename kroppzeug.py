@@ -27,9 +27,12 @@ from socket import gethostname
 
 # global variables
 hosts           = []
+host_groups     = {}
 whereami        = False
 ssh_config_file = os.getenv("HOME") + '/.ssh/config'
 error_message   = ''
+default_group   = 'none'
+default_cmd     = 'ssh'
 
 # colors, control sequences
 TERM_RED        = '\033[91m'
@@ -77,8 +80,11 @@ def parse_hosts(filename):
             update = False
             autocmd = False
             shell = 'ssh'
+            group = 'none'
             i += 1
-        elif option.lower() == '#kroppzeug_ssh' and value.lower() != 'ssh':
+        elif option.lower() == '#kroppzeug_group' and value.lower() != default_group:
+            group = value
+        elif option.lower() == '#kroppzeug_ssh' and value.lower() != default_cmd:
             shell = value
         elif option.lower() == '#kroppzeug_description':
             about = value
@@ -87,7 +93,13 @@ def parse_hosts(filename):
         elif option.lower() == '#kroppzeug_autocmd' and value.lower() != 'false':
             autocmd = value
         elif option.lower() == '#kroppzeug_managed' and value.lower() == 'true':
-            hosts.append([shortcut, about, update, autocmd, shell])
+            hosts.append([shortcut, about, update, autocmd, shell, group])
+            # dict stuff
+            try:
+                hosts_list = host_groups[group]
+                hosts_list.append([shortcut, about, update, autocmd, shell])
+            except KeyError:
+                host_groups[group] = [[shortcut, about, update, autocmd, shell]]
     inputfile.close()
 
 
@@ -107,22 +119,42 @@ def print_header(terminal_size_x):
 
 
 # print a list of available hosts
-def print_hosts(shortcut_width, about_width):
-    i = -1
-    for host in hosts:
-        i += 1
-        host_shortcut = host[0][:shortcut_width]
-        if host[1] is not False:
-            host_about = ' ' + host[1][:about_width] + ' '
-        else:
-            host_about = ' '
-        out = ' '
-        out = out + TERM_BOLD + TERM_BLUE + host_shortcut.rjust(shortcut_width)
-        out = out + TERM_RESET + host_about.ljust(about_width)
-        if i % 2 == 0:
-            print(out, end='')
-        else:
-            print(out)
+def print_hosts(shortcut_width, about_width, terminal_size_x):
+    # get the keys as a sorted list
+    group_keys = sorted(host_groups.keys())
+    # if default group is used or not and if so
+    if default_group in group_keys:
+        group_keys.remove(default_group)
+        # insert at the beginning
+        group_keys.insert(0, default_group)
+    # iterate through groups
+    for group_key in group_keys:
+        if group_key != default_group:
+            group_label = '─| ' + TERM_BOLD + TERM_MAGENTA + group_key + TERM_RESET + ' |'
+            group_label = group_label + '─' * (terminal_size_x - len(group_key) - 5)
+            print(group_label.center(terminal_size_x))
+        # empty line
+        print()
+        host_group = host_groups[group_key]
+        i = -1
+        for host in host_group:
+            i += 1
+            host_shortcut = host[0][:shortcut_width]
+            if host[1] is not False:
+                host_about = ' ' + host[1][:about_width] + ' '
+            else:
+                host_about = ' '
+            out = ' '
+            out = out + TERM_BOLD + TERM_BLUE + host_shortcut.rjust(shortcut_width)
+            out = out + TERM_RESET + host_about.ljust(about_width)
+            if i % 2 == 0:
+                print(out, end='')
+            else:
+                print(out)
+            if len(host_group) == i + 1 and len(host_group) % 2 != 0:
+                print()
+        # empty line
+        print()
 
 
 def print_vertical_space(term_size_y, lines_to_spare=2):
@@ -165,7 +197,7 @@ def build_screen():
     about_width = (term_size_x - ((((bss + sw + bs + aas) * nc) + ms))) // nc
     # print the actual screen
     print_header(term_size_x)
-    print_hosts(shortcut_width, about_width)
+    print_hosts(shortcut_width, about_width, term_size_x)
     print_rest_screen(term_size_y, term_size_x)
 
 
@@ -180,6 +212,7 @@ def connect_host(i):
     os.system('clear')
     print(TERM_YELLOW + shell_command + TERM_RESET)
     call(shell_command, shell=True)
+
 
 def update_host(i):
     update_command = hosts[i][2]
@@ -206,8 +239,16 @@ def shortcut_to_id(shortcut):
 def hosts_startswith(text):
     return [host[0] for host in hosts if host[0].startswith(text)]
 
+def groups_startswith(text):
+    groups = host_groups.keys()
+    return [host for host in groups if host.startswith(text)]
 
 parse_hosts(ssh_config_file)
+
+#with open('/tmp/file-group-dict', 'w+') as file:
+#    file.write(str(host_groups))
+#with open('/tmp/file-hosts', 'w+') as file:
+#    file.write(str(hosts))
 
 
 import cmd
@@ -250,6 +291,7 @@ class KroppzeugShell(cmd.Cmd):
             for i in range(len(hosts)):
                 update_host(i)
                 print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
+                time.sleep(1)
         else:
             i = shortcut_to_id(arg)
             if i is not False:
@@ -260,6 +302,22 @@ class KroppzeugShell(cmd.Cmd):
                 #print(TERM_BOLD + TERM_RED + 'unknown/'\
                 #'undefined shortcut' + TERM_RESET)
                 error_message = 'unknown/undefined shortcut'
+
+    def do_update_group(self, arg):
+        'Update specified group: update_group work'
+        global error_message
+        term_size_y, term_size_x = get_termsize()
+        try:
+            hosts_list = host_groups[arg]
+            for host in hosts_list:
+                i = shortcut_to_id(host[0])
+                update_host(i)
+                print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
+                time.sleep(1)
+        except KeyError:
+            #print(TERM_BOLD + TERM_RED + 'unknown/'\
+            #'undefined shortcut' + TERM_RESET)
+            error_message = 'unknown/undefined shortcut'
 
     def do_list(self, arg):
         'List all available shortcuts for managed hosts: list'
@@ -280,6 +338,9 @@ class KroppzeugShell(cmd.Cmd):
         if text == '' or 'all'.startswith(text):
             result.append('all')
         return result
+
+    def complete_update_group(self, text, line, begidx, endidx):
+        return groups_startswith(text)
 
     #------------aux cmd functions-------------#
     # if empty line is submitted do nothing just rebuild screen
