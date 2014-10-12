@@ -34,6 +34,14 @@ error_message   = ''
 default_group   = 'none'
 default_cmd     = 'ssh'
 
+# Kroppzeug options
+kropp_group     = '#kroppzeug_group'
+kropp_ssh       = '#kroppzeug_ssh'
+kropp_desc      = '#kroppzeug_description'
+kropp_update    = '#kroppzeug_update'
+kropp_autocmd   = '#kroppzeug_autocmd'
+kropp_managed   = '#kroppzeug_managed'
+
 # colors, control sequences
 TERM_RED        = '\033[91m'
 TERM_GREEN      = '\033[92m'
@@ -79,20 +87,20 @@ def parse_hosts(filename):
             about = 'no description'
             update = False
             autocmd = False
-            shell = 'ssh'
-            group = 'none'
+            shell = default_cmd
+            group = default_group
             i += 1
-        elif option.lower() == '#kroppzeug_group' and value.lower() != default_group:
+        elif option.lower() == kropp_group and value.lower() != default_group:
             group = value
-        elif option.lower() == '#kroppzeug_ssh' and value.lower() != default_cmd:
+        elif option.lower() == kropp_ssh and value.lower() != default_cmd:
             shell = value
-        elif option.lower() == '#kroppzeug_description':
+        elif option.lower() == kropp_desc:
             about = value
-        elif option.lower() == '#kroppzeug_update' and len(value) > 0:
+        elif option.lower() == kropp_update and len(value) > 0:
             update = value
-        elif option.lower() == '#kroppzeug_autocmd' and value.lower() != 'false':
+        elif option.lower() == kropp_autocmd and value.lower() != 'false':
             autocmd = value
-        elif option.lower() == '#kroppzeug_managed' and value.lower() == 'true':
+        elif option.lower() == kropp_managed and value.lower() == 'true':
             hosts.append([shortcut, about, update, autocmd, shell, group])
             # dict stuff
             try:

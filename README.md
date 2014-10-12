@@ -22,14 +22,15 @@ Configuration
 
 Just annotate you SSH config file with comments starting with '#kroppzeug_'.
 
-
-* ``#kroppzeug_autocmd`` Commands to execute after the connection has been made. If value is ``false`` no command is executed.
+* ``#kroppzeug_autocmd`` Commands to execute after the connection has been made. If value is ``false`` no command is executed. Mandatory.
+* ``#kroppzeug_group`` This allows grouping of hosts, to e.g. update whole groups. Default value is``ǹone``. Optional.
 * ``#kroppzeug_description`` A description of the server. Optional.
 * ``#kroppzeug_update`` Commands to execute when using the update function. Optional.
 * ``#kroppzeug_ssh`` Default is to use ssh, but setting this to e.g. mosh will use mosh to connect to the server. Optional.
-* ``#kroppzeug_managed`` Set to 'true' to allow kroppzeug to list this server.
+* ``#kroppzeug_managed`` Set to 'true' to allow kroppzeug to list this server. Mandatory.
 
 The default behaviour is to use ``ssh`` and ``ssh -v`` when updating. But ``#kroppzeug_ssh`` allows changing of ssh command for a normal connection, like changing it to ``mosh`` or to ``ssh -vvv``.
+If no ``#kroppzeug_group`` is specified the host is added to the default group called ``none``. Otherwise hosts with corresponding groups a group together an can be e.g. updated by using the ``update_group <group_name>`` command.
 ``#kroppzeug_managed`` must be true if a host entry should be used and it also must be the last comment for a host entry, only this ensures correct parsing of the config file and host entries.
 
 ````
@@ -68,6 +69,21 @@ Host fun
     #kroppzeug_managed      true
 ````
 
+````
+Host neo
+    HostName                bluepill.example.com
+    User                    apprentice
+    Port                    6666
+    IdentityFile            /home/path/to/priv-key
+    IdentitiesOnly          yes
+    #kroppzeug_autocmd      false
+    #kroppzeug_description  VPN Server
+    #kroppzeug_update       sudo apt-get update; sudo apt-get upgrade
+    #kroppzeug_ssh          ssh -v
+    #kroppzeug_group        matrix
+    #kroppzeug_managed      true
+````
+
 Commands
 --------
 
@@ -77,7 +93,7 @@ all servers. If you are unsure from which host you are connecting, e.g.
 because you own too many computers, type ``whereami`` to toggle the hostname
 in the title area. The prompt is like a special purpose shell that supports
 **TAB** completion and by typing ``help <command>`` a short description and usage examples are given.
-
+The tab completion only works until special characters like ``!?-+*/|<>`` and so on are used in host or group names.
 
 Screenshot
 ----------
@@ -86,20 +102,27 @@ Screenshot
                           ├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬                           
                           ┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘                           
 ────────────────────────────────────────────────────────────────────────────────
-             mail Mailserver                        www Webserver
-           nethop Shell                             gws Gateway E.
-          storage Storage E.                    sealand Backup Server
+
              cell Testbed                        glados MCP                 
-            cloud Owncloud                       valkyr Mailserver          
-           oracle DNS Server                    wheatly Webserver           
-          turrent Honeypot                          bit Firewall            
-         morpheus Puppet Master                     neo VPN Server          
+
+─| NaN |────────────────────────────────────────────────────────────────────────
+
+               mail Mailserver                        www Webserver
+           nethop Shell                             gws Gateway E.
+          storage Storage E.                    sealand Backup
            nan-gw Gateway Frankfurt             nan-vpn VPN Terminator IPMI
            puppet Puppet Master                      ns Nameserver (master)
              dns1 RDNSS 1                          dns2 RDNSS 2
           irc IRC Server                          cloud OwnCloud Server
               git GIT Repository                    jmp VPN server
          workshop IPv6-Workshop
+
+─| FunNet |─────────────────────────────────────────────────────────────
+
+            cloud Owncloud                       valkyr Mailserver          
+           oracle DNS Server                    wheatly Webserver           
+          turrent Honeypot                          bit Firewall            
+         morpheus Puppet Master                     neo VPN Server          
 
 ────────────────────────────────────────────────────────────────────────────────
 (kroppzeug)$ 
