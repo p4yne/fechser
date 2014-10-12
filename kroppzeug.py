@@ -26,7 +26,6 @@ from subprocess import call
 from socket import gethostname
 
 # global variables
-hosts           = []
 host_groups     = {}
 whereami        = False
 ssh_config_file = os.getenv("HOME") + '/.ssh/config'
@@ -101,8 +100,7 @@ def parse_hosts(filename):
         elif option.lower() == kropp_autocmd and value.lower() != 'false':
             autocmd = value
         elif option.lower() == kropp_managed and value.lower() == 'true':
-            hosts.append([shortcut, about, update, autocmd, shell, group])
-            # dict stuff
+            # fill the dictionary with the parsed stuff
             try:
                 hosts_list = host_groups[group]
                 hosts_list.append([shortcut, about, update, autocmd, shell])
@@ -209,11 +207,11 @@ def build_screen():
     print_rest_screen(term_size_y, term_size_x)
 
 
-def connect_host(i):
-    auto_command = hosts[i][3]
-    shortcut = hosts[i][0]
+def connect_host(host):
+    auto_command = host[3]
+    shortcut = host[0]
     # craft shell command
-    shell_command = hosts[i][4] + ' ' + shortcut
+    shell_command = host[4] + ' ' + shortcut
     if auto_command is not False:
         shell_command += ' -t "' + auto_command + '"'
     # go!
@@ -222,9 +220,9 @@ def connect_host(i):
     call(shell_command, shell=True)
 
 
-def update_host(i):
-    update_command = hosts[i][2]
-    shortcut = hosts[i][0]
+def update_host(host):
+    update_command = host[2]
+    shortcut = host[0]
     # craft shell command
     shell_command = 'ssh -v ' + shortcut
     if update_command is not False:
@@ -235,28 +233,35 @@ def update_host(i):
         call(shell_command, shell=True)
 
 
-def shortcut_to_id(shortcut):
-    i = -1
-    for host in hosts:
-        i += 1
-        if host[0] == shortcut:
-            return i
+def get_host_for_shortcut(shortcut):
+    # travers through dictionary entries
+    for key_value_pair in host_groups.items():
+        # access the values which are lists of hosts
+        # and the value is a single host
+        for host in key_value_pair[1]:
+            if host[0] == shortcut:
+                return host
+    # if nothing is found return False
     return False
 
 
 def hosts_startswith(text):
-    return [host[0] for host in hosts if host[0].startswith(text)]
+    result_list = []
+    # travers through dictionary entries
+    for key_value_pair in host_groups.items():
+        # access the values which are lists of hosts
+        # and the value is a single host
+        for host in key_value_pair[1]:
+            if host[0].startswith(text):
+                result_list.append(host[0])
+    return result_list
+
 
 def groups_startswith(text):
     groups = host_groups.keys()
     return [host for host in groups if host.startswith(text)]
 
 parse_hosts(ssh_config_file)
-
-#with open('/tmp/file-group-dict', 'w+') as file:
-#    file.write(str(host_groups))
-#with open('/tmp/file-hosts', 'w+') as file:
-#    file.write(str(hosts))
 
 
 import cmd
@@ -281,13 +286,11 @@ class KroppzeugShell(cmd.Cmd):
     def do_connect(self, arg):
         'Connect to specified host: connect valkyr'
         global error_message
-        i = shortcut_to_id(arg)
-        if i is not False:
-            connect_host(i)
+        host = get_host_for_shortcut(arg)
+        if host is not False:
+            connect_host(host)
             time.sleep(1)
         else:
-            #print(TERM_BOLD + TERM_RED + 'unknown/'\
-            #'undefined shortcut' + TERM_RESET)
             error_message = 'unknown/undefined shortcut'
 
     def do_update(self, arg):
@@ -296,19 +299,21 @@ class KroppzeugShell(cmd.Cmd):
         global error_message
         term_size_y, term_size_x = get_termsize()
         if arg == 'all':
-            for i in range(len(hosts)):
-                update_host(i)
-                print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
-                time.sleep(1)
+            # travers through dictionary entries
+            for key_value_pair in host_groups.items():
+                # access the values which are lists of hosts
+                # and the value is a single host
+                for host in key_value_pair[1]:
+                    update_host(host)
+                    print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
+                    time.sleep(1)
         else:
-            i = shortcut_to_id(arg)
-            if i is not False:
-                update_host(i)
+            host = get_host_for_shortcut(arg)
+            if host is not False:
+                update_host(host)
                 print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
                 time.sleep(3)
             else:
-                #print(TERM_BOLD + TERM_RED + 'unknown/'\
-                #'undefined shortcut' + TERM_RESET)
                 error_message = 'unknown/undefined shortcut'
 
     def do_update_group(self, arg):
@@ -318,13 +323,10 @@ class KroppzeugShell(cmd.Cmd):
         try:
             hosts_list = host_groups[arg]
             for host in hosts_list:
-                i = shortcut_to_id(host[0])
-                update_host(i)
+                update_host(host)
                 print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
                 time.sleep(1)
         except KeyError:
-            #print(TERM_BOLD + TERM_RED + 'unknown/'\
-            #'undefined shortcut' + TERM_RESET)
             error_message = 'unknown/undefined shortcut'
 
     def do_list(self, arg):

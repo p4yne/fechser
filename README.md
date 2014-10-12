@@ -117,7 +117,7 @@ Screenshot
               git GIT Repository                    jmp VPN server
          workshop IPv6-Workshop
 
-─| FunNet |─────────────────────────────────────────────────────────────
+─| FunNet |─────────────────────────────────────────────────────────────────────
 
             cloud Owncloud                       valkyr Mailserver          
            oracle DNS Server                    wheatly Webserver           
