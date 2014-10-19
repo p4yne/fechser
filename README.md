@@ -22,16 +22,27 @@ Configuration
 
 Just annotate you SSH config file with comments starting with '#kroppzeug_'.
 
-* ``#kroppzeug_autocmd`` Commands to execute after the connection has been made. If value is ``false`` no command is executed. Mandatory.
-* ``#kroppzeug_group`` This allows grouping of hosts, to e.g. update whole groups. Default value is``ǹone``. Optional.
+* ``#kroppzeug_autocmd`` Commands to execute after the connection has been made.
+ If value is ``false`` no command is executed. Mandatory.
+* ``#kroppzeug_group`` This allows grouping of hosts, to e.g. update whole
+ groups. Default value is``ǹone``. Optional.
 * ``#kroppzeug_description`` A description of the server. Optional.
-* ``#kroppzeug_update`` Commands to execute when using the update function. Optional.
-* ``#kroppzeug_ssh`` Default is to use ssh, but setting this to e.g. mosh will use mosh to connect to the server. Optional.
-* ``#kroppzeug_managed`` Set to 'true' to allow kroppzeug to list this server. Mandatory.
+* ``#kroppzeug_update`` Commands to execute when using the update function.
+ Optional.
+* ``#kroppzeug_ssh`` Default is to use ssh, but setting this to e.g. mosh will
+ use mosh to connect to the server. Optional.
+* ``#kroppzeug_managed`` Set to 'true' to allow kroppzeug to list this server.
+ Mandatory.
 
-The default behaviour is to use ``ssh`` and ``ssh -v`` when updating. But ``#kroppzeug_ssh`` allows changing of ssh command for a normal connection, like changing it to ``mosh`` or to ``ssh -vvv``.
-If no ``#kroppzeug_group`` is specified the host is added to the default group called ``none``. Otherwise hosts with corresponding groups a group together an can be e.g. updated by using the ``update_group <group_name>`` command.
-``#kroppzeug_managed`` must be true if a host entry should be used and it also must be the last comment for a host entry, only this ensures correct parsing of the config file and host entries.
+The default behaviour is to use ``ssh`` and ``ssh -v`` when updating.
+But ``#kroppzeug_ssh`` allows changing of ssh command for a normal connection,
+ like changing it to ``mosh`` or to ``ssh -vvv``.
+If no ``#kroppzeug_group`` is specified the host is added to the default group
+ called ``none``. Otherwise hosts with corresponding groups a group together
+  and can be e.g. updated by using the ``update_group <group_name>`` command.
+``#kroppzeug_managed`` must be true if a host entry should be used and it also
+ must be the last comment for a host entry, only this ensures correct parsing
+  of the config file and host entries.
 
 ````
 Host cloud
@@ -92,18 +103,24 @@ To update a server use ``update [server name]`` or ``update all`` to update
 all servers. If you are unsure from which host you are connecting, e.g.
 because you own too many computers, type ``whereami`` to toggle the hostname
 in the title area. The prompt is like a special purpose shell that supports
-**TAB** completion and by typing ``help <command>`` a short description and usage examples are given.
-The tab completion only works until special characters like ``!?-+*/|<>`` and so on are used in host or group names.
+**TAB** completion and by typing ``help <command>`` a short description and
+usage examples are given.
+
+Known Issues
+------------
+The tab completion only works until special characters like ``!?-+*/|<>`` and
+so on are used in host or group names.
+
 
 Screenshot
 ----------
 ````
-                          ┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐                           
-                          ├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬                           
-                          ┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘                           
+                          ┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐
+                          ├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬
+                          ┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘
 ────────────────────────────────────────────────────────────────────────────────
 
-             cell Testbed                        glados MCP                 
+             cell Testbed                        glados MCP
 
 ─| NaN |────────────────────────────────────────────────────────────────────────
 
@@ -119,13 +136,13 @@ Screenshot
 
 ─| FunNet |─────────────────────────────────────────────────────────────────────
 
-            cloud Owncloud                       valkyr Mailserver          
-           oracle DNS Server                    wheatly Webserver           
-          turrent Honeypot                          bit Firewall            
-         morpheus Puppet Master                     neo VPN Server          
+            cloud Owncloud                       valkyr Mailserver
+           oracle DNS Server                    wheatly Webserver
+          turrent Honeypot                          bit Firewall
+         morpheus Puppet Master                     neo VPN Server
 
 ────────────────────────────────────────────────────────────────────────────────
-(kroppzeug)$ 
+(kroppzeug)$
 
 ````
 
