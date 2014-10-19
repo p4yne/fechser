@@ -7,7 +7,7 @@ Helps you to manage your server kindergarten!
 About
 -----
 
-Kroppzeug helps you to manage your server kindergarten by parsing your
+Fechser helps you to manage your server kindergarten by parsing your
 SSH config file and providing shortcuts for connecting to a server or
 updating one or all servers. Fechser is perfect for managing a few to
 a dozent servers but may be no fun when you have to orchestrate hundreds
