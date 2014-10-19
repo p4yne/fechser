@@ -23,7 +23,6 @@ import os
 import time
 import signal
 import sys
-import signal
 from subprocess import call
 from socket import gethostname
 
