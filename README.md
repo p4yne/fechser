@@ -31,13 +31,14 @@ Just annotate your SSH config file with comments starting with '#kroppzeug_'.
 
 
 Note: ``#kroppzeug_managed`` must be set to 'true' to enable a host entry. Furthermore, it must be the last of the comments for that host.
-If ``#kroppzeug_ssh`` is changed to something else than 'ssh' like 'mosh' than the ``#kroppzeug_autocmd`` option must be set to 'false' because mosh does not support the -t option to execute a command.
+If ``#kroppzeug_ssh`` is changed to something else than 'ssh' like 'mosh' than the ``#kroppzeug_autocmd`` option must be set to 'false' because 'mosh' does not support the '-t' option to execute a command.
+
 ````
 Host cloud
     Hostname                cloud.nonattached.net
     User                    user1
     Port                    2222
-    #kroppzeug_autocmd      -t tmux attach || tmux
+    #kroppzeug_autocmd      tmux attach || tmux
     #kroppzeug_description  OwnCloud Server
     #kroppzeug_update       apt-get update; apt-get upgrade
     #kroppzeug_managed      true
