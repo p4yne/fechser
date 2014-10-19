@@ -20,24 +20,24 @@ low-german term for ones offspring.
 Configuration
 -------------
 
-Just annotate you SSH config file with comments starting with '#kroppzeug_'.
+Just annotate your SSH config file with comments starting with '#kroppzeug_'.
 
 
 * ``#kroppzeug_autocmd`` Commands to execute after the connection has been made. If value is ``false`` no command is executed.
 * ``#kroppzeug_description`` A description of the server. Optional.
 * ``#kroppzeug_update`` Commands to execute when using the update function. Optional.
-* ``#kroppzeug_ssh`` Default is to use ssh, but setting this to e.g. mosh will use mosh to connect to the server. Optional.
+* ``#kroppzeug_ssh`` Default is to use ssh, but setting this to e.g. ssh -vvv  will generate very very verbose ssh output or to mosh  which will be used then to connect to the server. Optional.
 * ``#kroppzeug_managed`` Set to 'true' to allow kroppzeug to list this server.
 
-The default behaviour is to use ``ssh`` and ``ssh -v`` when updating. But ``#kroppzeug_ssh`` allows changing of ssh command for a normal connection, like changing it to ``mosh`` or to ``ssh -vvv``.
-``#kroppzeug_managed`` must be true if a host entry should be used and it also must be the last comment for a host entry, only this ensures correct parsing of the config file and host entries.
 
+Note: ``#kroppzeug_managed`` must be set to 'true' to enable a host entry. Furthermore, it must be the last of the comments for that host.
+If ``#kroppzeug_ssh`` is changed to something else than 'ssh' like 'mosh' than the ``#kroppzeug_autocmd`` option must be set to 'false' because mosh does not support the -t option to execute a command.
 ````
 Host cloud
     Hostname                cloud.nonattached.net
     User                    user1
     Port                    2222
-    #kroppzeug_autocmd      tmux attach || tmux
+    #kroppzeug_autocmd      -t tmux attach || tmux
     #kroppzeug_description  OwnCloud Server
     #kroppzeug_update       apt-get update; apt-get upgrade
     #kroppzeug_managed      true
@@ -72,10 +72,11 @@ Commands
 --------
 
 To connect to a server just type the coresponding ``[server name]``.
-To update a server use ``update [server name]`` or ``update all`` to update
+To update a server use ``!update [server name]`` or ``!update-all`` to update
 all servers. If you are unsure from which host you are connecting, e.g.
-because you own too many computers, type ``whereami`` to toggle the hostname
-in the title area.
+because you own too many computers, type ``!hostname`` to toggle the hostname
+in the title area. You can always leave kroppzeug by typing ``!exit`` or using
+CTRL+C or CTRL+D.
 
 
 Screenshot
@@ -96,8 +97,7 @@ Screenshot
    workshop IPv6-Workshop
 
 ─────────────────────────────────────────────────────────────────────
-
-$
+(kroppzeug)$
 ````
 
 License

@@ -20,6 +20,7 @@
 import string
 import os
 import time
+import signal
 import sys
 import signal
 from subprocess import call
@@ -28,7 +29,7 @@ from socket import gethostname
 # global variables
 hosts           = []
 error_message   = False
-whereami        = False
+hostname        = False
 ssh_config_file = os.getenv("HOME") + '/.ssh/config'
 
 # colors, control sequences
@@ -43,31 +44,18 @@ TERM_RESET      = '\033[0m'
 
 # catch SIGINT (e.g. ctrl+c)
 def signal_handler(signal, frame):
-    print()
-    print(TERM_RESET + 'Life tasted so good, dude!')
+    os.system('clear')
     sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 
 
 # get terminal size
 def get_termsize():
+    global TERM_SIZEY, TERM_SIZEX
     y, x = os.popen('stty size', 'r').read().split()
-    y = int(y)
-    x = int(x)
-    return y, x
-# terminal dimensions and sizes
-TERM_SIZEY, TERM_SIZEX = get_termsize()
-
-# fine grained layouting
-# bss,shortcut_width,bs,about_width,aas,ms
-bss = 1     # before_shortcut_space
-sw  = 16    # shortcut_width
-bs  = 1     # between_space
-aas = 1     # after_about_space
-ms  = 0     # middle_space
-nc  = 2     # number of columns
-shortcut_width = sw
-about_width = (TERM_SIZEX - ((((bss + sw + bs + aas) * nc) + ms))) // nc
+    TERM_SIZEY = int(y)
+    TERM_SIZEX = int(x)
+    return
 
 
 # read ssh hosts from config file
@@ -86,7 +74,7 @@ def parse_hosts(filename):
         value = line[1]
         if option.lower() == 'host':
             shortcut = value
-            about = 'no description'
+            description = ''
             update = False
             autocmd = False
             shell = 'ssh'
@@ -94,21 +82,26 @@ def parse_hosts(filename):
         elif option.lower() == '#kroppzeug_ssh' and value.lower() != 'ssh':
             shell = value
         elif option.lower() == '#kroppzeug_description':
-            about = value
+            description = value
         elif option.lower() == '#kroppzeug_update' and len(value) > 0:
             update = value
         elif option.lower() == '#kroppzeug_autocmd' and value.lower() != 'false':
             autocmd = value
         elif option.lower() == '#kroppzeug_managed' and value.lower() == 'true':
-            hosts.append([shortcut, about, update, autocmd, shell])
+            hosts.append([shortcut, description, update, autocmd, shell])
     inputfile.close()
+
+
+# print horizontal line
+def print_hline():
+    print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
 
 
 # print header
 def print_header():
     os.system('clear')
     print(TERM_BOLD + TERM_RED, end='')
-    if whereami is True:
+    if hostname is True:
         print()
         print(gethostname().center(TERM_SIZEX))
         print()
@@ -116,11 +109,22 @@ def print_header():
         print('┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐'.center(TERM_SIZEX))
         print('├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬'.center(TERM_SIZEX))
         print('┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘'.center(TERM_SIZEX))
-    print(TERM_GREEN + '─' * TERM_SIZEX)
+    print_hline()
 
 
 # print a list of available hosts
 def print_hosts():
+    # fine grained layouting
+    # bss,shortcut_width,bs,about_width,aas,ms
+    bss = 1     # before_shortcut_space
+    sw  = 16    # shortcut_width
+    bs  = 1     # between_space
+    aas = 1     # after_about_space
+    ms  = 0     # middle_space
+    nc  = 2     # number of columns
+    shortcut_width = sw
+    about_width = (TERM_SIZEX - ((((bss + sw + bs + aas) * nc) + ms))) // nc
+
     i = -1
     for host in hosts:
         i += 1
@@ -141,18 +145,20 @@ def print_hosts():
 def print_cmd():
     global error_message
     # position
-    posx = str(TERM_SIZEY - 3)
+    if error_message is not False:
+        posx = str(TERM_SIZEY - 3)
+    else:
+        posx = str(TERM_SIZEY - 2)
     print('\033[' + posx + ';0f')
-    # horizontal line
-    print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
-    # print error message if set
+    print_hline()
+
+    # error message
     if error_message is not False:
         print(TERM_BOLD + TERM_RED + error_message)
         error_message = False
-    else:
-        print()
+
     # command prompt
-    print(TERM_BOLD + TERM_YELLOW + '$ ' + TERM_RESET, end='')
+    print(TERM_BOLD + TERM_YELLOW + '(kroppzeug)$ ' + TERM_RESET, end='')
 
 
 def connect_host(i):
@@ -162,7 +168,6 @@ def connect_host(i):
     shell_command = hosts[i][4] + ' ' + shortcut
     if auto_command is not False:
         shell_command += ' -t "' + auto_command + '"'
-    # go!
     os.system('clear')
     print(TERM_YELLOW + shell_command + TERM_RESET)
     call(shell_command, shell=True)
@@ -175,7 +180,6 @@ def update_host(i):
     shell_command = 'ssh -v ' + shortcut
     if update_command is not False:
         shell_command += ' -t "' + update_command + '"'
-        # go!
         os.system('clear')
         print(TERM_YELLOW + shell_command + TERM_RESET)
         call(shell_command, shell=True)
@@ -193,44 +197,48 @@ parse_hosts(ssh_config_file)
 
 while True:
     # build screen
-    TERM_SIZEY, TERM_SIZEX = get_termsize()
+    get_termsize()
     print_header()
     print_hosts()
     print_cmd()
 
     # input
     try:
-        n = input('')
+        cmd = input('')
     except EOFError:
-        n = 'exit'
+        cmd = '!exit'
 
     # execute
-    ns = n.split(None, 1)
-    if n == 'q' or n == 'e' or n == 'exit':
+    cmds = cmd.split(None, 1)
+    if len(cmd) < 1:
+        pass
+    elif cmd == '!exit':
         os.system('clear')
         quit()
-    elif n == 'whereami':
-        if whereami is True:
-            whereami = False
-        else:
-            whereami = True
-    elif len(ns) > 1 and ns[0] == 'update' and ns[1] == 'all':
+    elif cmd == '!hostname':
+        hostname = not hostname
+    elif cmd == '!update-all':
         for i in range(len(hosts)):
             update_host(i)
-            print(TERM_BOLD + TERM_GREEN + '─' * TERM_SIZEX + TERM_RESET)
-    elif len(ns) > 1 and ns[0] == 'update':
-        i = shortcut_to_id(ns[1])
+            print_hline()
+    elif cmd.startswith('!update') and len(cmds) <= 1:
+        error_message = 'Oh no, missing server name!'
+    elif cmd.startswith('!update') and len(cmds) > 1:
+        i = shortcut_to_id(cmds[1])
         if i is not False:
             update_host(i)
             time.sleep(3)
         else:
-            error_message = 'unknown shortcut'
+            error_message = 'Sorry, don\'t know that server name!'
+    elif cmd.startswith('!'):
+        error_message = 'Try \'!hostname\', \'!update\', ' + \
+        '\'!update-all\' or \'!exit\'...'
     else:
-        i = shortcut_to_id(n)
+        i = shortcut_to_id(cmd)
         if i is not False:
             connect_host(i)
             time.sleep(1)
         else:
-            error_message = 'unknown shortcut'
+            error_message = 'Sorry, don\'t know that server name!'
 
 
