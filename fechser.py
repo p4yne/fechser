@@ -78,15 +78,15 @@ def parse_hosts(filename):
             autocmd = False
             shell = 'ssh'
             i += 1
-        elif option.lower() == '#kroppzeug_ssh' and value.lower() != 'ssh':
+        elif option.lower() == '#kf_ssh' and value.lower() != 'ssh':
             shell = value
-        elif option.lower() == '#kroppzeug_description':
+        elif option.lower() == '#kf_description':
             description = value
-        elif option.lower() == '#kroppzeug_update' and len(value) > 0:
+        elif option.lower() == '#kf_update' and len(value) > 0:
             update = value
-        elif option.lower() == '#kroppzeug_autocmd' and value.lower() != 'false':
+        elif option.lower() == '#kf_autocmd' and value.lower() != 'false':
             autocmd = value
-        elif option.lower() == '#kroppzeug_managed' and value.lower() == 'true':
+        elif option.lower() == '#kf_managed' and value.lower() == 'true':
             hosts.append([shortcut, description, update, autocmd, shell])
     inputfile.close()
 
@@ -107,9 +107,9 @@ def print_header():
     if hostname is True:
         print(gethostname().center(termx))
     else:
-        print('┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐'.center(termx))
-        print('├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬'.center(termx))
-        print('┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘'.center(termx))
+        print('┌─┐┌─┐┌─┐┬ ┬┌─┐┌─┐┬─┐'.center(termx))
+        print('├┤ ├┤ │  ├─┤└─┐├┤ ├┬┘'.center(termx))
+        print('└  └─┘└─┘┴ ┴└─┘└─┘┴└─'.center(termx))
     print_hline()
 
 
@@ -159,7 +159,7 @@ def print_prompt():
         error_message = False
 
     # command prompt
-    print(TERM_BOLD + TERM_YELLOW + '(kroppzeug)$ ' + TERM_RESET, end='')
+    print(TERM_BOLD + TERM_YELLOW + '(fechser)$ ' + TERM_RESET, end='')
 
 
 def connect_host(i):
