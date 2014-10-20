@@ -1,4 +1,4 @@
-kroppzeug
+fechser
 =========
 
 Helps you to manage your server kindergarten!
@@ -7,40 +7,46 @@ Helps you to manage your server kindergarten!
 About
 -----
 
-Kroppzeug helps you to manage your server kindergarten by parsing your
+Fechser helps you to manage your server kindergarten by parsing your
 SSH config file and providing shortcuts for connecting to a server or
-updating one or all servers. Kroppzeug is perfect for managing a few to
+updating one or all servers. fechser is perfect for managing a few to
 a dozent servers but may be no fun when you have to orchestrate hundreds
 or thousands of servers. It requires that you use a terminal multiplexer
 like screen or tmux after connecting to a server.
-Trivia: 'Kroppzeug' is an often lovingly and sometimes snidely used
-low-german term for ones offspring.
+Trivia: 'Fechser', say [Fäxa], is a lovingly bavarian german term for ones offspring.
+
+Fechser is a fork of kroppzeug by Dan Luedtke. Since its forking it gained
+some additional features like, pseudo shell, tab completion but also lost some of its simplicity.
+
+Kroppzeug and fechser are trying to stay configuration file compatible
+hence the common option prefix ``#kf_``, but supported features may vary.
+
 
 
 Configuration
 -------------
 
-Just annotate you SSH config file with comments starting with '#kroppzeug_'.
+Just annotate you SSH config file with comments starting with '#kf_'.
 
-* ``#kroppzeug_autocmd`` Commands to execute after the connection has been made.
+* ``#kf_autocmd`` Commands to execute after the connection has been made.
  If value is ``false`` no command is executed. Mandatory.
-* ``#kroppzeug_group`` This allows grouping of hosts, to e.g. update whole
- groups. Default value is``ǹone``. Optional.
-* ``#kroppzeug_description`` A description of the server. Optional.
-* ``#kroppzeug_update`` Commands to execute when using the update function.
+* ``#kf_group`` This allows grouping of hosts, to e.g. update whole
+ groups. Default value is ``none``. Optional.
+* ``#kf_description`` A description of the server. Optional.
+* ``#kf_update`` Commands to execute when using the update function.
  Optional.
-* ``#kroppzeug_ssh`` Default is to use ssh, but setting this to e.g. mosh will
+* ``#kf_ssh`` Default is to use ssh, but setting this to e.g. mosh will
  use mosh to connect to the server. Optional.
-* ``#kroppzeug_managed`` Set to 'true' to allow kroppzeug to list this server.
+* ``#kf_managed`` Set to 'true' to allow fechser to list this server.
  Mandatory.
 
 The default behaviour is to use ``ssh`` and ``ssh -v`` when updating.
-But ``#kroppzeug_ssh`` allows changing of ssh command for a normal connection,
+But ``#kf_ssh`` allows changing of ssh command for a normal connection,
  like changing it to ``mosh`` or to ``ssh -vvv``.
-If no ``#kroppzeug_group`` is specified the host is added to the default group
+If no ``#kf_group`` is specified the host is added to the default group
  called ``none``. Otherwise hosts with corresponding groups a group together
   and can be e.g. updated by using the ``update_group <group_name>`` command.
-``#kroppzeug_managed`` must be true if a host entry should be used and it also
+``#kf_managed`` must be true if a host entry should be used and it also
  must be the last comment for a host entry, only this ensures correct parsing
   of the config file and host entries.
 
@@ -49,10 +55,10 @@ Host cloud
     Hostname                cloud.nonattached.net
     User                    user1
     Port                    2222
-    #kroppzeug_autocmd      tmux attach || tmux
-    #kroppzeug_description  OwnCloud Server
-    #kroppzeug_update       apt-get update; apt-get upgrade
-    #kroppzeug_managed      true
+    #kf_autocmd      tmux attach || tmux
+    #kf_description  OwnCloud Server
+    #kf_update       apt-get update; apt-get upgrade
+    #kf_managed      true
 ````
 
 Additional Example snippets:
@@ -62,10 +68,10 @@ Host server
     Hostname                webserver.nonattached.net
     User                    user1
     Port                    2222
-    #kroppzeug_autocmd      false
-    #kroppzeug_description  OwnCloud Server
-    #kroppzeug_update       sudo apt-get update; sudo apt-get upgrade
-    #kroppzeug_managed      true
+    #kf_autocmd      false
+    #kf_description  OwnCloud Server
+    #kf_update       sudo apt-get update && sudo apt-get upgrade
+    #kf_managed      true
 ````
 
 ````
@@ -73,11 +79,11 @@ Host fun
     Hostname                lucky.nonattached.net
     User                    user1
     Port                    2222
-    #kroppzeug_autocmd      false
-    #kroppzeug_description  Happy Cats
-    #kroppzeug_update       yaourt -Syua
-    #kroppzeug_ssh          mosh
-    #kroppzeug_managed      true
+    #kf_autocmd      false
+    #kf_description  Happy Cats
+    #kf_update       yaourt -Syua
+    #kf_ssh          mosh
+    #kf_managed      true
 ````
 
 ````
@@ -87,12 +93,12 @@ Host neo
     Port                    6666
     IdentityFile            /home/path/to/priv-key
     IdentitiesOnly          yes
-    #kroppzeug_autocmd      false
-    #kroppzeug_description  VPN Server
-    #kroppzeug_update       sudo apt-get update; sudo apt-get upgrade
-    #kroppzeug_ssh          ssh -v
-    #kroppzeug_group        matrix
-    #kroppzeug_managed      true
+    #kf_autocmd      false
+    #kf_description  VPN Server
+    #kf_update       sudo apt-get update; sudo apt-get upgrade
+    #kf_ssh          ssh -v
+    #kf_group        matrix
+    #kf_managed      true
 ````
 
 Commands
@@ -101,7 +107,7 @@ Commands
 To connect to a server just type ``connect [server name]``.
 To update a server use ``update [server name]`` or ``update all`` to update
 all servers. If you are unsure from which host you are connecting, e.g.
-because you own too many computers, type ``whereami`` to toggle the hostname
+because you own too many computers, type ``hostname`` to toggle the hostname
 in the title area. The prompt is like a special purpose shell that supports
 **TAB** completion and by typing ``help <command>`` a short description and
 usage examples are given.
@@ -115,16 +121,16 @@ so on are used in host or group names.
 Screenshot
 ----------
 ````
-                          ┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐
-                          ├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬
-                          ┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘
+                             ┌─┐┌─┐┌─┐┬ ┬┌─┐┌─┐┬─┐
+                             ├┤ ├┤ │  ├─┤└─┐├┤ ├┬┘
+                             └  └─┘└─┘┴ ┴└─┘└─┘┴└─
 ────────────────────────────────────────────────────────────────────────────────
 
              cell Testbed                        glados MCP
 
 ─| NaN |────────────────────────────────────────────────────────────────────────
 
-               mail Mailserver                        www Webserver
+             mail Mailserver                        www Webserver
            nethop Shell                             gws Gateway E.
           storage Storage E.                    sealand Backup
            nan-gw Gateway Frankfurt             nan-vpn VPN Terminator IPMI
@@ -142,14 +148,19 @@ Screenshot
          morpheus Puppet Master                     neo VPN Server
 
 ────────────────────────────────────────────────────────────────────────────────
-(kroppzeug)$
+(fechser)$
 
 ````
 
 License
 -------
 
+Copyright 2014-2015 P4yne
 Copyright 2012-2014 Dan Luedtke <mail@danrl.de>
+
+Original Idea, Concept and Code:
+  Dan Luedtke <mail@danrl.de>
+  https://github.com/danrl/kroppzeug
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

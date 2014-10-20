@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-# kroppzeug: Helps you to manage your server kindergarten!
+# fechser: Helps you to manage your server kindergarten!
 #
 # Copyright 2012-2014 Dan Luedtke <mail@danrl.de>
 #
@@ -27,19 +27,20 @@ from socket import gethostname
 
 # global variables
 host_groups     = {}
-whereami        = False
+hostname        = False
 ssh_config_file = os.getenv("HOME") + '/.ssh/config'
 error_message   = ''
 default_group   = 'none'
 default_cmd     = 'ssh'
+default_no_desc = 'no description'
 
 # Kroppzeug options
-kropp_group     = '#kroppzeug_group'
-kropp_ssh       = '#kroppzeug_ssh'
-kropp_desc      = '#kroppzeug_description'
-kropp_update    = '#kroppzeug_update'
-kropp_autocmd   = '#kroppzeug_autocmd'
-kropp_managed   = '#kroppzeug_managed'
+kf_group     = '#kf_group'
+kf_ssh       = '#kf_ssh'
+kf_desc      = '#kf_description'
+kf_update    = '#kf_update'
+kf_autocmd   = '#kf_autocmd'
+kf_managed   = '#kf_managed'
 
 # colors, control sequences
 TERM_RED        = '\033[91m'
@@ -62,9 +63,7 @@ signal.signal(signal.SIGINT, signal_handler)
 # get terminal size
 def get_termsize():
     y, x = os.popen('stty size', 'r').read().split()
-    y = int(y)
-    x = int(x)
-    return y, x
+    return int(x), int(y)
 
 
 # read ssh hosts from config file
@@ -83,23 +82,23 @@ def parse_hosts(filename):
         value = line[1]
         if option.lower() == 'host':
             shortcut = value
-            about = 'no description'
+            about = default_no_desc
             update = False
             autocmd = False
             shell = default_cmd
             group = default_group
             i += 1
-        elif option.lower() == kropp_group and value.lower() != default_group:
+        elif option.lower() == kf_group and value.lower() != default_group:
             group = value
-        elif option.lower() == kropp_ssh and value.lower() != default_cmd:
+        elif option.lower() == kf_ssh and value.lower() != default_cmd:
             shell = value
-        elif option.lower() == kropp_desc:
+        elif option.lower() == kf_desc:
             about = value
-        elif option.lower() == kropp_update and len(value) > 0:
+        elif option.lower() == kf_update and len(value) > 0:
             update = value
-        elif option.lower() == kropp_autocmd and value.lower() != 'false':
+        elif option.lower() == kf_autocmd and value.lower() != 'false':
             autocmd = value
-        elif option.lower() == kropp_managed and value.lower() == 'true':
+        elif option.lower() == kf_managed and value.lower() == 'true':
             # fill the dictionary with the parsed stuff
             try:
                 hosts_list = host_groups[group]
@@ -110,22 +109,36 @@ def parse_hosts(filename):
 
 
 # print header
-def print_header(terminal_size_x):
+def print_header():
+    global hostname
+    termx, termy = get_termsize()
     os.system('clear')
     print(TERM_BOLD + TERM_RED, end='')
-    if whereami is True:
-        print()
-        print(gethostname().center(terminal_size_x))
-        print()
+    if hostname is True:
+        print(gethostname().center(termx))
     else:
-        print('┬┌─┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐┬ ┬┌─┐'.center(terminal_size_x))
-        print('├┴┐├┬┘│ │├─┘├─┘┌─┘├┤ │ ││ ┬'.center(terminal_size_x))
-        print('┴ ┴┴└─└─┘┴  ┴  └─┘└─┘└─┘└─┘'.center(terminal_size_x))
-    print(TERM_GREEN + '─' * terminal_size_x)
+        print('┌─┐┌─┐┌─┐┬ ┬┌─┐┌─┐┬─┐'.center(termx))
+        print('├┤ ├┤ │  ├─┤└─┐├┤ ├┬┘'.center(termx))
+        print('└  └─┘└─┘┴ ┴└─┘└─┘┴└─'.center(termx))
+    print(TERM_GREEN + '─' * termx)
+
+# print group identifier
+def print_group_id(group_key):
+    termx, termy = get_termsize()
+    group_label = '─| ' + TERM_BOLD + TERM_MAGENTA + group_key + TERM_RESET + ' |'
+    group_label = group_label + '─' * (termx - len(group_key) - 5)
+    print(group_label.center(termx))
 
 
 # print a list of available hosts
-def print_hosts(shortcut_width, about_width, terminal_size_x):
+def print_hosts():
+    termx, termy = get_termsize()
+
+    # shortcut length
+    swidth = 16
+    # description length
+    dwidth = (termx - ((swidth + 3) * 2)) // 2
+
     # get the keys as a sorted list
     group_keys = sorted(host_groups.keys())
     # if default group is used or not and if so
@@ -136,23 +149,21 @@ def print_hosts(shortcut_width, about_width, terminal_size_x):
     # iterate through groups
     for group_key in group_keys:
         if group_key != default_group:
-            group_label = '─| ' + TERM_BOLD + TERM_MAGENTA + group_key + TERM_RESET + ' |'
-            group_label = group_label + '─' * (terminal_size_x - len(group_key) - 5)
-            print(group_label.center(terminal_size_x))
+            print_group_id(group_key)
         # empty line
         print()
         host_group = host_groups[group_key]
         i = -1
         for host in host_group:
             i += 1
-            host_shortcut = host[0][:shortcut_width]
+            host_shortcut = host[0][:swidth]
             if host[1] is not False:
-                host_about = ' ' + host[1][:about_width] + ' '
+                host_about = ' ' + host[1][:dwidth] + ' '
             else:
                 host_about = ' '
             out = ' '
-            out = out + TERM_BOLD + TERM_BLUE + host_shortcut.rjust(shortcut_width)
-            out = out + TERM_RESET + host_about.ljust(about_width)
+            out = out + TERM_BOLD + TERM_BLUE + host_shortcut.rjust(swidth)
+            out = out + TERM_RESET + host_about.ljust(dwidth)
             if i % 2 == 0:
                 print(out, end='')
             else:
@@ -163,50 +174,43 @@ def print_hosts(shortcut_width, about_width, terminal_size_x):
         print()
 
 
-def print_vertical_space(term_size_y, lines_to_spare=2):
+# print vertical space
+def print_vspace(lines_to_spare=2):
+    termx, termy = get_termsize()
     # position
-    posx = str(term_size_y - lines_to_spare)
+    posx = str(termy - lines_to_spare)
     print('\033[' + posx + ';0f')
 
 
-def print_horizontal_line(term_size_x):
-    # horizontal line
-    print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
+# print horizontal line
+def print_hline():
+    termx, termy = get_termsize()
+    print(TERM_BOLD + TERM_GREEN + '─' * termx + TERM_RESET)
 
 
-def print_rest_screen(term_size_y, term_size_x):
+# print the rest of the screen
+def print_rest_screen():
     global error_message
+    termx, termy = get_termsize()
     if error_message == '':
-        print_vertical_space(term_size_y)
-        print_horizontal_line(term_size_x)
+        print_vspace()
+        print_hline()
     else:
-        print_vertical_space(term_size_y, 3)
-        print_horizontal_line(term_size_x)
+        print_vspace(3)
+        print_hline()
         print(TERM_BOLD + TERM_RED + error_message + TERM_RESET)
         # reset error message
         error_message = ''
 
 
+# build the whole screen
 def build_screen():
-    # build screen
-    # terminal dimensions and sizes
-    term_size_y, term_size_x = get_termsize()
-    # fine grained layouting
-    # bss,shortcut_width,bs,about_width,aas,ms
-    bss = 1     # before_shortcut_space
-    sw  = 16    # shortcut_width
-    bs  = 1     # between_space
-    aas = 1     # after_about_space
-    ms  = 0     # middle_space
-    nc  = 2     # number of columns
-    shortcut_width = sw
-    about_width = (term_size_x - ((((bss + sw + bs + aas) * nc) + ms))) // nc
-    # print the actual screen
-    print_header(term_size_x)
-    print_hosts(shortcut_width, about_width, term_size_x)
-    print_rest_screen(term_size_y, term_size_x)
+    print_header()
+    print_hosts()
+    print_rest_screen()
 
 
+# connect to specified host
 def connect_host(host):
     auto_command = host[3]
     shortcut = host[0]
@@ -220,6 +224,7 @@ def connect_host(host):
     call(shell_command, shell=True)
 
 
+# update specified host
 def update_host(host):
     update_command = host[2]
     shortcut = host[0]
@@ -233,6 +238,7 @@ def update_host(host):
         call(shell_command, shell=True)
 
 
+# retrieve actual host list for shortcut
 def get_host_for_shortcut(shortcut):
     # travers through dictionary entries
     for key_value_pair in host_groups.items():
@@ -245,6 +251,7 @@ def get_host_for_shortcut(shortcut):
     return False
 
 
+# used for tab completion get a matching list of host for text input
 def hosts_startswith(text):
     result_list = []
     # travers through dictionary entries
@@ -257,6 +264,7 @@ def hosts_startswith(text):
     return result_list
 
 
+# used for tab completion get a matching list of groups for text input
 def groups_startswith(text):
     groups = host_groups.keys()
     return [host for host in groups if host.startswith(text)]
@@ -267,37 +275,36 @@ parse_hosts(ssh_config_file)
 import cmd
 
 
-class KroppzeugShell(cmd.Cmd):
-    prompt = TERM_BOLD + TERM_YELLOW + '(kroppzeug)$ ' + TERM_RESET
+class FechserShell(cmd.Cmd):
+    prompt = TERM_BOLD + TERM_YELLOW + '(fechser)$ ' + TERM_RESET
 
     def __init__(self):
-        super(KroppzeugShell, self).__init__()
+        super(FechserShell, self).__init__()
 
     #--------------commands---------------#
-    def do_whereami(self, arg):
+    def do_hostname(self, arg):
         'Toggle if current hostname sould be displayed instead of the '\
-        'Kroppzeug title\ntype it again to switch back: whereami'
-        global whereami
-        if whereami is True:
-            whereami = False
+        'Fechser title\ntype it again to switch back: hostname'
+        global hostname
+        if hostname is True:
+            hostname = False
         else:
-            whereami = True
+            hostname = True
 
     def do_connect(self, arg):
         'Connect to specified host: connect valkyr'
         global error_message
         host = get_host_for_shortcut(arg)
-        if host is not False:
+        if host is False:
+            error_message = 'unknown/undefined shortcut'
+        else:
             connect_host(host)
             time.sleep(1)
-        else:
-            error_message = 'unknown/undefined shortcut'
 
     def do_update(self, arg):
         'Update specified host: update painkiller \n' \
         'Update all hosts:      update all '
         global error_message
-        term_size_y, term_size_x = get_termsize()
         if arg == 'all':
             # travers through dictionary entries
             for key_value_pair in host_groups.items():
@@ -305,26 +312,25 @@ class KroppzeugShell(cmd.Cmd):
                 # and the value is a single host
                 for host in key_value_pair[1]:
                     update_host(host)
-                    print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
+                    print_hline()
                     time.sleep(1)
         else:
             host = get_host_for_shortcut(arg)
-            if host is not False:
-                update_host(host)
-                print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
-                time.sleep(3)
-            else:
+            if host is False:
                 error_message = 'unknown/undefined shortcut'
+            else:
+                update_host(host)
+                print_hline()
+                time.sleep(3)
 
     def do_update_group(self, arg):
         'Update specified group: update_group work'
         global error_message
-        term_size_y, term_size_x = get_termsize()
         try:
             hosts_list = host_groups[arg]
             for host in hosts_list:
                 update_host(host)
-                print(TERM_BOLD + TERM_GREEN + '─' * term_size_x + TERM_RESET)
+                print_hline()
                 time.sleep(1)
         except KeyError:
             error_message = 'unknown/undefined shortcut'
@@ -334,9 +340,9 @@ class KroppzeugShell(cmd.Cmd):
         build_screen()
 
     def do_exit(self, arg):
-        'Exit/quit the Kroppzeug shell: exit'
+        'Exit/quit the Fechser shell: exit'
         global error_message
-        error_message = 'Thank you for using Kroppzeug to manage your digital offspring!'
+        error_message = 'Thank you for using Fechser to manage your digital offspring!'
         return True
 
     #--------------tab completion---------------#
@@ -375,4 +381,4 @@ class KroppzeugShell(cmd.Cmd):
         return stop
 
 if __name__ == '__main__':
-    KroppzeugShell().cmdloop()
+    FechserShell().cmdloop()
