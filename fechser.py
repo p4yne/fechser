@@ -17,11 +17,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import string
 import os
 import time
 import sys
 import signal
+import cmd
 from subprocess import call
 from socket import gethostname
 
@@ -50,6 +50,16 @@ TERM_BLUE       = '\033[94m'
 TERM_MAGENTA    = '\033[95m'
 TERM_BOLD       = '\033[1m'
 TERM_RESET      = '\033[0m'
+
+#import codecs
+
+#If encoding is old or broken on your system:
+#if sys.stdout.encoding is None or sys.stdout.encoding == 'ANSI_X3.4-1968':
+#    utf8_writer = codecs.getwriter('UTF-8')
+#    if sys.version_info.major < 3:
+#        sys.stdout = utf8_writer(sys.stdout, errors='replace')
+#    else:
+#        sys.stdout = utf8_writer(sys.stdout.buffer, errors='replace')
 
 
 # catch SIGINT (e.g. ctrl+c)
@@ -121,6 +131,8 @@ def print_header():
         print('├┤ ├┤ │  ├─┤└─┐├┤ ├┬┘'.center(termx))
         print('└  └─┘└─┘┴ ┴└─┘└─┘┴└─'.center(termx))
     print(TERM_GREEN + '─' * termx)
+
+
 
 # print group identifier
 def print_group_id(group_key):
@@ -272,19 +284,17 @@ def groups_startswith(text):
 parse_hosts(ssh_config_file)
 
 
-import cmd
-
-
+# Interactive Shell
 class FechserShell(cmd.Cmd):
     prompt = TERM_BOLD + TERM_YELLOW + '(fechser)$ ' + TERM_RESET
 
     def __init__(self):
         super(FechserShell, self).__init__()
 
-    #--------------commands---------------#
+    # --------------commands--------------- #
     def do_hostname(self, arg):
         'Toggle if current hostname sould be displayed instead of the '\
-        'Fechser title\ntype it again to switch back: hostname'
+            'Fechser title\ntype it again to switch back: hostname'
         global hostname
         if hostname is True:
             hostname = False
@@ -303,7 +313,7 @@ class FechserShell(cmd.Cmd):
 
     def do_update(self, arg):
         'Update specified host: update painkiller \n' \
-        'Update all hosts:      update all '
+            'Update all hosts:      update all '
         global error_message
         if arg == 'all':
             # travers through dictionary entries
@@ -345,7 +355,7 @@ class FechserShell(cmd.Cmd):
         error_message = 'Thank you for using Fechser to manage your digital offspring!'
         return True
 
-    #--------------tab completion---------------#
+    # --------------tab completion--------------- #
     def complete_connect(self, text, line, begidx, endidx):
         return hosts_startswith(text)
 
@@ -358,7 +368,7 @@ class FechserShell(cmd.Cmd):
     def complete_update_group(self, text, line, begidx, endidx):
         return groups_startswith(text)
 
-    #------------aux cmd functions-------------#
+    # ------------aux cmd functions------------- #
     # if empty line is submitted do nothing just rebuild screen
     def emptyline(self):
         global error_message
