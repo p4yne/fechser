@@ -146,10 +146,18 @@ def print_group_id(group_key):
 def print_hosts():
     termx, termy = get_termsize()
 
+    # column length
+    cwidth = 40
+    # amount of columns
+    camount = termx // cwidth
+    # minimum 2 column layout
+    # if camount == 1 then shrink dwidth
+    if camount == 1:
+        camount = 2
     # shortcut length
     swidth = 16
     # description length
-    dwidth = (termx - ((swidth + 3) * 2)) // 2
+    dwidth = (termx - ((swidth + 3) * camount)) // camount
 
     # get the keys as a sorted list
     group_keys = sorted(host_groups.keys())
@@ -162,10 +170,8 @@ def print_hosts():
     for group_key in group_keys:
         if group_key != default_group:
             print_group_id(group_key)
-        # empty line
-        print()
         host_group = host_groups[group_key]
-        i = -1
+        i = 0 
         for host in host_group:
             i += 1
             host_shortcut = host[0][:swidth]
@@ -176,14 +182,14 @@ def print_hosts():
             out = ' '
             out = out + TERM_BOLD + TERM_BLUE + host_shortcut.rjust(swidth)
             out = out + TERM_RESET + host_about.ljust(dwidth)
-            if i % 2 == 0:
-                print(out, end='')
+            if i % camount == 0:
+               print(out)
             else:
-                print(out)
-            if len(host_group) == i + 1 and len(host_group) % 2 != 0:
+                print(out, end='')
+            if len(host_group) == i and len(host_group) % camount != 0:
                 print()
-        # empty line
-        print()
+    # empty line
+    print()
 
 
 # print vertical space
