@@ -133,7 +133,6 @@ def print_header():
     print(TERM_GREEN + '─' * termx)
 
 
-
 # print group identifier
 def print_group_id(group_key):
     termx, termy = get_termsize()

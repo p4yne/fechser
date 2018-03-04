@@ -22,7 +22,6 @@ Kroppzeug and fechser are trying to stay configuration file compatible
 hence the common option prefix ``#kf_``, but supported features may vary.
 
 
-
 Configuration
 -------------
 
@@ -49,6 +48,7 @@ If no ``#kf_group`` is specified the host is added to the default group
 ``#kf_managed`` must be true if a host entry should be used and it also
  must be the last comment for a host entry, only this ensures correct parsing
   of the config file and host entries.
+
 
 ````
 Host cloud
@@ -101,9 +101,9 @@ Host neo
     #kf_managed      true
 ````
 
+
 Commands
 --------
-
 To connect to a server just type ``connect [server name]``.
 To update a server use ``update [server name]`` or ``update all`` to update
 all servers. If you are unsure from which host you are connecting, e.g.
@@ -111,6 +111,7 @@ because you own too many computers, type ``hostname`` to toggle the hostname
 in the title area. The prompt is like a special purpose shell that supports
 **TAB** completion and by typing ``help <command>`` a short description and
 usage examples are given.
+
 
 Known Issues
 ------------
@@ -149,13 +150,12 @@ Screenshot
 
 ────────────────────────────────────────────────────────────────────────────────
 (fechser)$
-
 ````
 
 License
 -------
 
-Copyright 2014-2015 P4yne
+Copyright 2014-2018 P4yne
 Copyright 2012-2014 Dan Luedtke <mail@danrl.de>
 
 Original Idea, Concept and Code:
